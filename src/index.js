@@ -1,12 +1,37 @@
 const express = require("express");
 
+const yargs = require ("yargs/yargs")(process.argv.slice(2))
+const args = yargs.default({
+    port:8080
+}).argv
+
+const dotenv = require("dotenv");
+dotenv.config()
+
+//-- child process
+const {exec,spawn} = require("child_process")
+
+exec("ls", (error, stdout,stderr)=>{
+    if(error){
+        console.log(`error: ${error.message}`)
+        return
+    }
+    if(stderr){
+        console.log(`stderr: ${stderr}`)
+        return
+    }
+
+    console.log(`stdout: ${stdouts}`)
+})
+
+
 const app = express();
 const passport = require("passport")
 const configPassport = require("./passport")
 const session = require("express-session")
 
 //DAtABASE
-const {db}=require("./db");
+//const {db}=require("./db");
 const req = require("express/lib/request");
 const res = require("express/lib/response");
 
@@ -62,12 +87,45 @@ app.post("/login",passport.authenticate("local-login",{
     failureRedirect:"/login"
 }))
 
-app.listen(8080, ()=>{
-    db.sync({force:false})
+//-------- fork
+
+
+
+app.get("/random", (req,res)=>{
+   let random = fork("./random.js");
+   random.send("start")
+   process.on("message",(sum)=>{
+       res.send(sum)       
+   })
+})
+
+//--- process
+
+let pid = process.cwd();
+let path = process.pid;
+let nodev = process.version;
+let title = process.title;
+let platform = process.platform;
+let memory = process.memoryUsage();
+console.log(memory)
+
+
+
+app.get("/info", (req,res)=>{
+    res.render("info",{pid, path, nodev, title, platform,memory})
+})
+
+
+
+let PORT = process.env.PORT;
+let HOST = process.env.HOST;
+
+app.listen(PORT, ()=>{
+    /*db.sync({force:false})
     .then(()=>{
         console.log("conectado a la base de datos")
     }).catch((err)=> {
         console.log(err)
-    })
-    console.log("server andando")
+    })*/
+    console.log(`server run on PORT ${args.port} HOST ${HOST}`)
 });

@@ -1,4 +1,4 @@
-const {db}=require("../db")
+/*const {db}=require("../db")
 const Sequelize = require("sequelize")
 
 const DataTypes = Sequelize.DataTypes
@@ -15,4 +15,4 @@ const User =db.define("users",{
     }
 })
 
-module.exports = {User}
+module.exports = {User}*/
